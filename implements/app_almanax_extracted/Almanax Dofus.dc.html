@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/classical-ab98f7b4-b406-4ce2-adf3-3d3ea115ec8d/styles.css">
+  <script src="_ds/classical-ab98f7b4-b406-4ce2-adf3-3d3ea115ec8d/_ds_bundle.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    :root {
+      --color-bg: #2d2b2b;
+      --color-surface: #444141;
+      --color-text: #f8f4f4;
+      --color-divider: color-mix(in srgb, #f8f4f4 18%, transparent);
+      --color-accent: oklch(58% 0.12 150);
+      --color-accent-2: oklch(56% 0.11 150);
+      --color-accent-100: oklch(96% 0.03 150);
+      --color-accent-200: oklch(91% 0.06 150);
+      --color-accent-300: oklch(84% 0.09 150);
+      --color-accent-400: oklch(73% 0.12 150);
+      --color-accent-500: oklch(58% 0.13 150);
+      --color-accent-600: oklch(48% 0.13 150);
+      --color-accent-700: oklch(40% 0.12 150);
+      --color-accent-800: oklch(30% 0.10 150);
+      --color-accent-900: oklch(20% 0.07 150);
+    }
+    a { color: var(--color-accent-400); text-decoration: underline; text-underline-offset: 2px; }
+    a:hover { color: var(--color-accent); }
+    .cell-plate { transition: background-color .15s ease; }
+  </style>
+</helmet>
+
+<div style="min-height:100vh; background:var(--color-bg); color:var(--color-text); font-family:var(--font-body); padding:var(--space-6) var(--space-4) var(--space-8);">
+
+  <div style="max-width:1180px; margin:0 auto;">
+
+    <header style="display:flex; align-items:baseline; justify-content:space-between; gap:var(--space-4); flex-wrap:wrap; border-bottom:1px solid var(--color-divider); padding-bottom:var(--space-4); margin-bottom:var(--space-6);">
+      <div>
+        <div style="font-family:var(--font-heading); font-weight:var(--font-heading-weight); letter-spacing:.04em; text-transform:uppercase; font-size:13px; color:var(--color-accent-400);">Dofus</div>
+        <h1 style="font-family:var(--font-heading); font-weight:400; font-size:40px; margin:2px 0 0;">Almanax — ressources du mois</h1>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:var(--space-3);">
+        <label style="display:flex; flex-direction:column; gap:4px; font-size:13px; color:var(--color-neutral-700);">
+          Nombre de personnages
+          <div style="display:flex; align-items:center; gap:6px; border:1px solid var(--color-divider); border-radius:var(--radius-sm); padding:4px 6px;">
+            <button type="button" class="btn btn-icon" aria-label="Moins" onClick="{{ decChars }}" style="width:28px; height:28px;">
+              <i data-lucide="minus" style="width:14px; height:14px;"></i>
+            </button>
+            <input class="input" type="number" min="1" max="20" value="{{ numChars }}" onChange="{{ onCharsInput }}" style="width:44px; text-align:center; border:none; padding:0; font-variant-numeric:tabular-nums; font-size:16px;"/>
+            <button type="button" class="btn btn-icon" aria-label="Plus" onClick="{{ incChars }}" style="width:28px; height:28px;">
+              <i data-lucide="plus" style="width:14px; height:14px;"></i>
+            </button>
+          </div>
+        </label>
+      </div>
+    </header>
+
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--space-4);">
+      <button type="button" class="btn btn-ghost" onClick="{{ prevMonth }}" style="display:flex; align-items:center; gap:6px;">
+        <i data-lucide="chevron-left" style="width:16px; height:16px;"></i> Précédent
+      </button>
+      <div style="font-family:var(--font-heading); font-weight:var(--font-heading-weight); font-size:24px; text-transform:capitalize;">{{ monthLabel }}</div>
+      <button type="button" class="btn btn-ghost" onClick="{{ nextMonth }}" style="display:flex; align-items:center; gap:6px;">
+        Suivant <i data-lucide="chevron-right" style="width:16px; height:16px;"></i>
+      </button>
+    </div>
+
+    <sc-if value="{{ error }}" hint-placeholder-val="{{ false }}">
+      <div class="card" style="padding:var(--space-4); text-align:center; border-color:var(--color-accent-300);">
+        <div class="card-title">Impossible de charger l'Almanax</div>
+        <div class="card-body">L'API dofusdu.de est peut-être hors ligne ou injoignable depuis ce navigateur.</div>
+        <button type="button" class="btn btn-secondary" onClick="{{ retry }}" style="margin-top:var(--space-3);">Réessayer</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ notError }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="display:grid; grid-template-columns:repeat(7,1fr); border-top:1px solid var(--color-divider); border-left:1px solid var(--color-divider);">
+          <sc-for list="{{ weekdayLabels }}" as="wd" hint-placeholder-count="7">
+            <div style="padding:8px 10px; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--color-neutral-400); border-right:1px solid var(--color-divider); border-bottom:1px solid var(--color-divider); font-family:var(--font-heading); background:var(--color-surface);">{{ wd }}</div>
+          </sc-for>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(7,1fr); border-left:1px solid var(--color-divider);">
+          <sc-for list="{{ cells }}" as="cell" hint-placeholder-count="35">
+            <div class="cell-plate" style="min-height:118px; padding:8px 10px; border-right:1px solid var(--color-divider); border-bottom:1px solid var(--color-divider); display:grid; grid-template-rows:20px 1fr auto; gap:6px; background:{{ cell.bg }}; opacity:{{ cell.opacity }};">
+              <sc-if value="{{ cell.inMonth }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex; align-items:center; justify-content:space-between; height:20px;">
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-variant-numeric:tabular-nums; font-size:14px; color:var(--color-neutral-300);">{{ cell.dayNum }}</span>
+                    <sc-if value="{{ cell.isToday }}" hint-placeholder-val="{{ false }}">
+                      <span class="tag tag-accent" style="font-size:10px;">Aujourd'hui</span>
+                    </sc-if>
+                  </div>
+                  <sc-if value="{{ cell.hasData }}" hint-placeholder-val="{{ false }}">
+                    <button type="button" class="btn btn-icon" aria-label="Ressources préparées" title="C'est bon, j'ai préparé les ressources" onClick="{{ cell.onTogglePrepared }}" style="width:22px; height:22px; color:{{ cell.checkColor }};">
+                      <i data-lucide="check-circle" style="width:15px; height:15px;"></i>
+                    </button>
+                  </sc-if>
+                </div>
+
+                <sc-if value="{{ cell.hasData }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex; align-items:flex-start; gap:6px;">
+                    <sc-if value="{{ cell.itemIcon }}" hint-placeholder-val="{{ false }}">
+                      <img src="{{ cell.itemIcon }}" alt="{{ cell.itemName }}" style="width:28px; height:28px; object-fit:contain; flex-shrink:0; border:1px solid var(--color-divider); border-radius:var(--radius-sm); background:var(--color-neutral-100);"/>
+                    </sc-if>
+                    <div style="display:flex; flex-direction:column; gap:2px; min-width:0;">
+                      <div style="font-family:var(--font-heading); font-weight:var(--font-heading-weight); font-size:15px; line-height:1.2;">{{ cell.itemName }}</div>
+                      <div style="align-self:flex-start; font-variant-numeric:tabular-nums; font-size:12px; display:flex; align-items:center; gap:3px;">
+                        <span style="color:var(--color-text);">{{ cell.qtyUnit }}</span>
+                        <sc-if value="{{ cell.showMulti }}" hint-placeholder-val="{{ false }}">
+                          <span style="color:var(--color-neutral-400);">×</span>
+                          <span style="color:var(--color-accent-400);">{{ cell.qtyChars }}</span>
+                          <span style="color:var(--color-neutral-400);">=</span>
+                          <span style="color:var(--color-accent-400); font-weight:600;">{{ cell.qtyTotal }}</span>
+                        </sc-if>
+                      </div>
+                    </div>
+                  </div>
+                  <sc-if value="{{ cell.hasBonus }}" hint-placeholder-val="{{ false }}">
+                    <button type="button" class="btn btn-ghost" onClick="{{ cell.onOpen }}" style="align-self:flex-start; padding:0; height:auto; font-size:11px; color:var(--color-accent-400); text-decoration:underline; text-underline-offset:2px;">Bonus du jour</button>
+                  </sc-if>
+                </sc-if>
+                <sc-if value="{{ cell.showLoading }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:12px; color:var(--color-neutral-700);">…</div>
+                </sc-if>
+                <sc-if value="{{ cell.showEmpty }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:12px; color:var(--color-neutral-700);">—</div>
+                </sc-if>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ popupOpen }}" hint-placeholder-val="{{ false }}">
+      <div class="dialog-backdrop" onClick="{{ closePopup }}">
+        <div class="dialog" onClick="{{ stopProp }}">
+          <div class="dialog-title">{{ popupDateLabel }}</div>
+          <div class="dialog-body">
+            <div style="font-family:var(--font-heading); font-weight:var(--font-heading-weight); font-size:18px; margin-bottom:var(--space-2);">{{ popupItemName }}</div>
+            <div style="margin-bottom:var(--space-3);">{{ popupBonusName }}</div>
+            <div class="hr" style="margin:var(--space-3) 0;"></div>
+            <div class="card-kicker">Gains de la quête</div>
+            <div style="display:flex; gap:var(--space-2); flex-wrap:wrap; margin-top:6px;">
+              <sc-if value="{{ popupHasKamas }}" hint-placeholder-val="{{ false }}">
+                <span class="tag tag-accent">{{ popupKamasLabel }} kamas</span>
+              </sc-if>
+              <sc-if value="{{ popupHasXp }}" hint-placeholder-val="{{ false }}">
+                <span class="tag tag-accent-2">{{ popupXpLabel }} XP</span>
+              </sc-if>
+              <sc-if value="{{ popupNoRewards }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size:13px; color:var(--color-neutral-700);">Aucune donnée de récompense</span>
+              </sc-if>
+            </div>
+          </div>
+          <div class="dialog-actions">
+            <button type="button" class="btn btn-secondary" onClick="{{ closePopup }}">Fermer</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <div class="hr" style="margin:var(--space-6) 0 var(--space-3);"></div>
+    <p style="font-size:12px; color:var(--color-neutral-700); text-align:center;">
+      Données Almanax fournies par l'API publique <a href="https://github.com/dofusdude/almanax-api" target="_blank" rel="noopener">dofusdude/almanax-api</a>.
+    </p>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;language&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;fr&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;options&quot;: [&quot;fr&quot;, &quot;en&quot;, &quot;de&quot;, &quot;es&quot;, &quot;pt&quot;], &quot;section&quot;: &quot;Almanax&quot;},
+  &quot;showBonus&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Almanax&quot;},
+  &quot;weekStart&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;monday&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;options&quot;: [&quot;monday&quot;, &quot;sunday&quot;], &quot;section&quot;: &quot;Almanax&quot;}
+}">
+class Component extends DCLogic {
+  state = {
+    year: new Date().getFullYear(),
+    month: new Date().getMonth(),
+    numChars: Number(localStorage.getItem('almanax_numChars')) || 1,
+    data: {},
+    loading: {},
+    error: false,
+    popupDate: null,
+    prepared: JSON.parse(localStorage.getItem('almanax_prepared') || '{}'),
+  };
+
+  cache = {};
+
+  componentDidMount() {
+    this.fetchMonth(this.state.year, this.state.month);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.language !== this.props.language) {
+      this.cache = {};
+      this.setState({ data: {}, error: false }, () => this.fetchMonth(this.state.year, this.state.month));
+    }
+    this.renderIcons();
+  }
+
+  renderIcons() {
+    if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+  }
+
+  get lang() {
+    return this.props.language || 'fr';
+  }
+
+  fmtDate(y, m, d) {
+    const mm = String(m + 1).padStart(2, '0');
+    const dd = String(d).padStart(2, '0');
+    return `${y}-${mm}-${dd}`;
+  }
+
+  async fetchMonth(year, month) {
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const lang = this.lang;
+    const loading = {};
+    for (let d = 1; d <= daysInMonth; d++) loading[this.fmtDate(year, month, d)] = true;
+    this.setState({ loading, error: false });
+
+    let anySuccess = false;
+    const results = await Promise.allSettled(
+      Array.from({ length: daysInMonth }, (_, i) => i + 1).map(async (d) => {
+        const dateStr = this.fmtDate(year, month, d);
+        if (this.cache[lang + dateStr]) return { dateStr, parsed: this.cache[lang + dateStr] };
+        const res = await fetch(`https://api.dofusdu.de/dofus3/v1/${lang}/almanax/${dateStr}`);
+        if (!res.ok) throw new Error('bad status');
+        const json = await res.json();
+        const parsed = this.parseDay(json);
+        this.cache[lang + dateStr] = parsed;
+        return { dateStr, parsed };
+      })
+    );
+
+    const data = { ...this.state.data };
+    const stillLoading = {};
+    results.forEach((r) => {
+      if (r.status === 'fulfilled') {
+        anySuccess = true;
+        data[r.value.dateStr] = r.value.parsed;
+      }
+    });
+
+    this.setState({ data, loading: stillLoading, error: !anySuccess });
+  }
+
+  parseDay(json) {
+    const bonus = json.bonus || {};
+    const item = json.item || (json.tribute && json.tribute.item) || json.offering || {};
+    const quantity =
+      (json.item && json.item.quantity) ??
+      (json.tribute && json.tribute.quantity) ??
+      json.quantity ??
+      item.quantity ??
+      null;
+    const icon = (item.image_urls && (item.image_urls.icon || item.image_urls.sd)) || item.image || '';
+    return {
+      bonusName: bonus.name || bonus.description || '',
+      itemName: item.name || '',
+      itemIcon: icon,
+      quantity,
+      rewardKamas: json.reward_kamas ?? null,
+      rewardXp: json.reward_xp ?? null,
+    };
+  }
+
+  retry = () => this.fetchMonth(this.state.year, this.state.month);
+
+  openPopup = (dateStr) => this.setState({ popupDate: dateStr });
+  closePopup = () => this.setState({ popupDate: null });
+  stopProp = (e) => e.stopPropagation();
+
+  togglePrepared = (dateStr) => {
+    const prepared = { ...this.state.prepared };
+    if (prepared[dateStr]) delete prepared[dateStr];
+    else prepared[dateStr] = true;
+    localStorage.setItem('almanax_prepared', JSON.stringify(prepared));
+    this.setState({ prepared });
+  };
+
+  prevMonth = () => {
+    let { year, month } = this.state;
+    month -= 1;
+    if (month < 0) { month = 11; year -= 1; }
+    this.setState({ year, month }, () => this.fetchMonth(year, month));
+  };
+
+  nextMonth = () => {
+    let { year, month } = this.state;
+    month += 1;
+    if (month > 11) { month = 0; year += 1; }
+    this.setState({ year, month }, () => this.fetchMonth(year, month));
+  };
+
+  setChars = (n) => {
+    const v = Math.max(1, Math.min(20, Math.round(n) || 1));
+    localStorage.setItem('almanax_numChars', String(v));
+    this.setState({ numChars: v });
+  };
+
+  incChars = () => this.setChars(this.state.numChars + 1);
+  decChars = () => this.setChars(this.state.numChars - 1);
+  onCharsInput = (e) => this.setChars(Number(e.target.value));
+
+  buildCells() {
+    const { year, month, data, loading, numChars, prepared } = this.state;
+    const weekStartsMonday = (this.props.weekStart || 'monday') === 'monday';
+    const firstOfMonth = new Date(year, month, 1);
+    let firstWeekday = firstOfMonth.getDay(); // 0=Sun
+    if (weekStartsMonday) firstWeekday = (firstWeekday + 6) % 7;
+
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const totalCells = Math.ceil((firstWeekday + daysInMonth) / 7) * 7;
+    const todayStr = this.fmtDate(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+
+    const cells = [];
+    for (let i = 0; i < totalCells; i++) {
+      const dayNum = i - firstWeekday + 1;
+      const inMonth = dayNum >= 1 && dayNum <= daysInMonth;
+      if (!inMonth) {
+        cells.push({ inMonth: false, bg: 'transparent', opacity: 0.35 });
+        continue;
+      }
+      const dateStr = this.fmtDate(year, month, dayNum);
+      const day = data[dateStr];
+      const isToday = dateStr === todayStr;
+      const hasData = !!(day && day.itemName);
+      const showLoading = !hasData && !!loading[dateStr];
+      const showEmpty = !hasData && !showLoading;
+      const total = hasData && day.quantity != null ? day.quantity * numChars : null;
+      cells.push({
+        inMonth: true,
+        dayNum,
+        isToday,
+        hasData,
+        showLoading,
+        showEmpty,
+        itemName: hasData ? day.itemName : '',
+        itemIcon: hasData ? day.itemIcon : '',
+        qtyUnit: hasData && day.quantity != null ? day.quantity : '',
+        qtyChars: numChars,
+        qtyTotal: total,
+        showMulti: hasData && day.quantity != null && numChars > 1,
+        bonusName: hasData ? day.bonusName : '',
+        hasBonus: hasData && !!(day && day.bonusName) && (this.props.showBonus !== false),
+        dateStr,
+        onOpen: () => this.openPopup(dateStr),
+        onTogglePrepared: () => this.togglePrepared(dateStr),
+        checkColor: prepared[dateStr] ? 'var(--color-accent-100)' : 'var(--color-neutral-500)',
+        bg: prepared[dateStr] ? 'var(--color-accent-700)' : (isToday ? 'var(--color-accent-900)' : 'var(--color-surface)'),
+        opacity: 1,
+      });
+    }
+    return cells;
+  }
+
+  weekdayLabels() {
+    const weekStartsMonday = (this.props.weekStart || 'monday') === 'monday';
+    const base = weekStartsMonday
+      ? [1, 2, 3, 4, 5, 6, 0]
+      : [0, 1, 2, 3, 4, 5, 6];
+    const fmt = new Intl.DateTimeFormat(this.lang, { weekday: 'short' });
+    const ref = new Date(2024, 0, 1); // a Monday
+    return base.map((offset) => {
+      const d = new Date(ref);
+      d.setDate(ref.getDate() + ((offset - 1 + 7) % 7));
+      return fmt.format(d).replace('.', '');
+    });
+  }
+
+  renderVals() {
+    const { year, month, numChars, error, popupDate, data } = this.state;
+    const monthLabel = new Intl.DateTimeFormat(this.lang, { month: 'long', year: 'numeric' }).format(new Date(year, month, 1));
+    const popupDay = popupDate ? data[popupDate] : null;
+    const popupDateLabel = popupDate
+      ? new Intl.DateTimeFormat(this.lang, { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(popupDate))
+      : '';
+    return {
+      monthLabel,
+      numChars,
+      cells: this.buildCells(),
+      weekdayLabels: this.weekdayLabels(),
+      error,
+      notError: !error,
+      showBonusFlag: this.props.showBonus !== false,
+      prevMonth: this.prevMonth,
+      nextMonth: this.nextMonth,
+      incChars: this.incChars,
+      decChars: this.decChars,
+      onCharsInput: this.onCharsInput,
+      retry: this.retry,
+      popupOpen: !!popupDate,
+      popupDateLabel,
+      popupItemName: popupDay ? popupDay.itemName : '',
+      popupBonusName: popupDay ? popupDay.bonusName : '',
+      popupHasKamas: !!(popupDay && popupDay.rewardKamas),
+      popupKamasLabel: popupDay && popupDay.rewardKamas != null ? popupDay.rewardKamas.toLocaleString('fr-FR') : '',
+      popupHasXp: !!(popupDay && popupDay.rewardXp),
+      popupXpLabel: popupDay && popupDay.rewardXp != null ? popupDay.rewardXp.toLocaleString('fr-FR') : '',
+      popupNoRewards: !!(popupDay && !popupDay.rewardKamas && !popupDay.rewardXp),
+      closePopup: this.closePopup,
+      stopProp: this.stopProp,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

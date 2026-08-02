@@ -1,0 +1,54 @@
+/* Design tokens for the Almanax feature — a fixed dark theme, independent
+   of the app's light/dark mode toggle. Declared at :root (not scoped to a
+   wrapper element) so portaled content — the shadcn Dialog renders outside
+   the React tree, straight under <body> — can still see them. */
+:root {
+  --am-bg: #201f1c;
+  --am-surface: oklch(24% 0.025 150);
+  --am-surface-today: oklch(28% 0.09 150);
+  --am-surface-prepared: oklch(40% 0.12 150);
+  --am-text: #f8f4f4;
+  --am-divider: oklch(32% 0.03 150);
+
+  --am-neutral-100: #f8f4f4;
+  --am-neutral-300: #d7d3d3;
+  --am-neutral-400: #bab6b6;
+  --am-neutral-500: #9b9797;
+  --am-neutral-700: #605d5d;
+
+  --am-accent: oklch(58% 0.12 150);
+  --am-accent-100: oklch(96% 0.03 150);
+  --am-accent-300: oklch(84% 0.09 150);
+  --am-accent-400: oklch(73% 0.12 150);
+  --am-accent-800: oklch(30% 0.1 150);
+
+  --am-warm: oklch(78% 0.15 70);
+}
+
+.almanax {
+  background: var(--am-bg);
+  color: var(--am-text);
+  font-family: var(--am-font-body);
+}
+
+.almanax-heading {
+  font-family: var(--am-font-heading);
+}
+
+.almanax-body {
+  font-family: var(--am-font-body);
+}
+
+.almanax a {
+  color: var(--am-accent-400);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.almanax a:hover {
+  color: var(--am-accent);
+}
+
+.almanax-cell {
+  transition: background-color 0.15s ease;
+}
