@@ -10,6 +10,7 @@ import { useAlmanaxMonth } from "@/hooks/use-almanax-month"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { AlmanaxDayCell } from "@/components/almanax/almanax-day-cell"
 import { AlmanaxDayDialog } from "@/components/almanax/almanax-day-dialog"
 import { almanaxBodyFont, almanaxHeadingFont } from "@/components/almanax/fonts"
@@ -70,18 +71,12 @@ export function AlmanaxCalendar() {
 
   return (
     <div
-      className={`${almanaxHeadingFont.variable} ${almanaxBodyFont.variable} almanax min-h-svh px-4 py-6 sm:px-6 sm:py-8`}
+      className={`${almanaxHeadingFont.variable} ${almanaxBodyFont.variable} min-h-svh bg-background px-4 py-6 text-foreground sm:px-6 sm:py-8`}
     >
       <div className="mx-auto max-w-5xl">
-        <header
-          className="mb-6 flex flex-wrap items-baseline justify-between gap-4 border-b pb-4"
-          style={{ borderColor: "var(--am-divider)" }}
-        >
+        <header className="mb-6 flex flex-wrap items-baseline justify-between gap-4 border-b border-border pb-4">
           <div>
-            <div
-              className="almanax-heading text-[13px] font-semibold tracking-wider uppercase"
-              style={{ color: "var(--am-accent-400)" }}
-            >
+            <div className="almanax-heading text-[13px] font-semibold tracking-wider text-accent uppercase">
               Dofus
             </div>
             <h1 className="almanax-heading mt-0.5 text-3xl font-normal sm:text-4xl">
@@ -89,42 +84,42 @@ export function AlmanaxCalendar() {
             </h1>
           </div>
 
-          <label className="flex flex-col gap-1 text-[13px]" style={{ color: "var(--am-neutral-500)" }}>
-            Nombre de personnages
-            <div
-              className="flex items-center gap-1.5 rounded-sm border px-1.5 py-1"
-              style={{ borderColor: "var(--am-divider)" }}
-            >
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label="Moins"
-                onClick={() => setChars(numChars - 1)}
-                className="size-7 rounded-md text-current hover:bg-white/10"
-              >
-                <Minus className="size-3.5" />
-              </Button>
-              <Input
-                type="number"
-                min={1}
-                max={20}
-                value={numChars}
-                onChange={(e) => setChars(Number(e.target.value))}
-                className="h-auto w-11 rounded-none border-none bg-transparent p-0 text-center text-base tabular-nums shadow-none focus-visible:ring-0"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label="Plus"
-                onClick={() => setChars(numChars + 1)}
-                className="size-7 rounded-md text-current hover:bg-white/10"
-              >
-                <Plus className="size-3.5" />
-              </Button>
-            </div>
-          </label>
+          <div className="flex items-end gap-3">
+            <label className="flex flex-col gap-1 text-[13px] text-muted-foreground">
+              Nombre de personnages
+              <div className="flex items-center gap-1.5 rounded-sm border border-border px-1.5 py-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Moins"
+                  onClick={() => setChars(numChars - 1)}
+                  className="size-7 rounded-md"
+                >
+                  <Minus className="size-3.5" />
+                </Button>
+                <Input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={numChars}
+                  onChange={(e) => setChars(Number(e.target.value))}
+                  className="h-auto w-11 rounded-none border-none bg-transparent p-0 text-center text-base tabular-nums shadow-none focus-visible:ring-0"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Plus"
+                  onClick={() => setChars(numChars + 1)}
+                  className="size-7 rounded-md"
+                >
+                  <Plus className="size-3.5" />
+                </Button>
+              </div>
+            </label>
+            <ThemeToggle />
+          </div>
         </header>
 
         <div className="mb-4 flex items-center justify-between">
@@ -132,8 +127,7 @@ export function AlmanaxCalendar() {
             type="button"
             variant="ghost"
             onClick={() => changeMonth(-1)}
-            className="rounded-md px-2 text-current hover:bg-white/10"
-            style={{ color: "var(--am-accent)" }}
+            className="rounded-md px-2 text-primary hover:text-primary"
           >
             <ChevronLeft className="size-4" /> Précédent
           </Button>
@@ -142,56 +136,38 @@ export function AlmanaxCalendar() {
             type="button"
             variant="ghost"
             onClick={() => changeMonth(1)}
-            className="rounded-md px-2 text-current hover:bg-white/10"
-            style={{ color: "var(--am-accent)" }}
+            className="rounded-md px-2 text-primary hover:text-primary"
           >
             Suivant <ChevronRight className="size-4" />
           </Button>
         </div>
 
         {error ? (
-          <div
-            className="rounded-md border p-4 text-center"
-            style={{ borderColor: "var(--am-accent-300)" }}
-          >
+          <div className="rounded-md border border-destructive/40 p-4 text-center">
             <div className="almanax-heading text-lg font-semibold">
               Impossible de charger l&apos;Almanax
             </div>
-            <div className="text-sm opacity-80">
+            <div className="text-sm text-muted-foreground">
               L&apos;API dofusdu.de est peut-être hors ligne ou injoignable depuis ce navigateur.
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={retry}
-              className="mt-3 rounded-md border"
-              style={{ borderColor: "var(--am-divider)", color: "var(--am-text)", background: "transparent" }}
-            >
+            <Button type="button" variant="outline" onClick={retry} className="mt-3 rounded-md">
               Réessayer
             </Button>
           </div>
         ) : (
           <div>
-            <div
-              className="grid grid-cols-7 border-t border-l"
-              style={{ borderColor: "var(--am-divider)" }}
-            >
+            <div className="grid grid-cols-7 border-t border-l border-border">
               {labels.map((label) => (
                 <div
                   key={label}
-                  className="almanax-heading border-r border-b px-2.5 py-2 text-xs tracking-wider uppercase"
-                  style={{
-                    borderColor: "var(--am-divider)",
-                    color: "var(--am-neutral-400)",
-                    background: "var(--am-surface)",
-                  }}
+                  className="almanax-heading border-r border-b border-border bg-card px-2.5 py-2 text-xs text-muted-foreground tracking-wider uppercase"
                 >
                   {label}
                 </div>
               ))}
             </div>
 
-            <div className="grid grid-cols-7 border-l" style={{ borderColor: "var(--am-divider)" }}>
+            <div className="grid grid-cols-7 border-l border-border">
               {cells.map((cell, i) =>
                 cell.inMonth && cell.date && cell.dayNumber ? (
                   <AlmanaxDayCell
@@ -206,11 +182,7 @@ export function AlmanaxCalendar() {
                     onOpenDetails={() => setSelectedDate(cell.date)}
                   />
                 ) : (
-                  <div
-                    key={`empty-${i}`}
-                    className="border-r border-b opacity-35"
-                    style={{ borderColor: "var(--am-divider)" }}
-                  />
+                  <div key={`empty-${i}`} className="border-r border-b border-border opacity-35" />
                 )
               )}
             </div>
@@ -224,10 +196,15 @@ export function AlmanaxCalendar() {
           onClose={() => setSelectedDate(null)}
         />
 
-        <div className="my-6 h-px" style={{ background: "var(--am-divider)" }} />
-        <p className="text-center text-xs" style={{ color: "var(--am-neutral-700)" }}>
+        <div className="my-6 h-px bg-border" />
+        <p className="text-center text-xs text-muted-foreground">
           Données Almanax fournies par l&apos;API publique{" "}
-          <a href="https://github.com/dofusdude/almanax-api" target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://github.com/dofusdude/almanax-api"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary underline underline-offset-2 hover:text-primary/80"
+          >
             dofusdude/almanax-api
           </a>
           .

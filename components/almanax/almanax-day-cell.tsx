@@ -19,22 +19,28 @@ interface AlmanaxDayCellProps {
   onOpenDetails: () => void
 }
 
-const STATUS_ICON: Record<AlmanaxDayStatus, typeof Circle> = {
-  none: Circle,
-  prepared: Check,
-  done: CheckCheck,
-}
-
-const STATUS_LABEL: Record<AlmanaxDayStatus, string> = {
-  none: "Marquer les ressources comme préparées",
-  prepared: "Marquer la quête comme faite sur tous les personnages",
-  done: "Réinitialiser",
-}
-
-const STATUS_COLOR: Record<AlmanaxDayStatus, string> = {
-  none: "var(--am-neutral-500)",
-  prepared: "var(--am-accent-100)",
-  done: "var(--am-done-100)",
+const STATUS_CONFIG: Record<
+  AlmanaxDayStatus,
+  { icon: typeof Circle; iconClass: string; cellClass: string; label: string }
+> = {
+  none: {
+    icon: Circle,
+    iconClass: "text-muted-foreground",
+    cellClass: "bg-card",
+    label: "Marquer les ressources comme préparées",
+  },
+  prepared: {
+    icon: Check,
+    iconClass: "text-primary",
+    cellClass: "bg-primary/15",
+    label: "Marquer la quête comme faite sur tous les personnages",
+  },
+  done: {
+    icon: CheckCheck,
+    iconClass: "text-chart-3",
+    cellClass: "bg-chart-3/15",
+    label: "Réinitialiser",
+  },
 }
 
 export function AlmanaxDayCell({
@@ -50,7 +56,7 @@ export function AlmanaxDayCell({
   const hasData = !!day?.item
   const total = hasData && day.itemQuantity != null ? day.itemQuantity * numChars : null
   const [copied, setCopied] = useState(false)
-  const StatusIcon = STATUS_ICON[status]
+  const { icon: StatusIcon, iconClass, cellClass, label } = STATUS_CONFIG[status]
 
   async function copyItemName() {
     if (!day?.item?.name) return
@@ -65,32 +71,16 @@ export function AlmanaxDayCell({
 
   return (
     <div
-      className="almanax-cell grid min-h-29.5 grid-rows-[20px_1fr_auto] gap-1.5 border-r border-b p-2"
-      style={{
-        borderColor: "var(--am-divider)",
-        background:
-          status === "done"
-            ? "var(--am-surface-done)"
-            : status === "prepared"
-              ? "var(--am-surface-prepared)"
-              : isToday
-                ? "var(--am-surface-today)"
-                : "var(--am-surface)",
-      }}
+      className={cn(
+        "almanax-cell grid min-h-29.5 grid-rows-[20px_1fr_auto] gap-1.5 border-r border-b border-border p-2",
+        status === "none" && isToday ? "bg-primary/10" : cellClass
+      )}
     >
       <div className="flex h-5 items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <span
-            className="text-sm tabular-nums"
-            style={{ color: "var(--am-neutral-300)" }}
-          >
-            {dayNumber}
-          </span>
+          <span className="text-sm text-muted-foreground tabular-nums">{dayNumber}</span>
           {isToday && (
-            <span
-              className="almanax-heading rounded px-1.5 py-0.5 text-[10px]"
-              style={{ background: "var(--am-accent-100)", color: "var(--am-accent-800)" }}
-            >
+            <span className="almanax-heading rounded bg-accent px-1.5 py-0.5 text-[10px] text-accent-foreground">
               Aujourd&apos;hui
             </span>
           )}
@@ -102,18 +92,19 @@ export function AlmanaxDayCell({
               aria-label="Copier le nom de la ressource"
               title={copied ? "Copié !" : "Copier le nom de la ressource"}
               onClick={copyItemName}
-              className="flex size-5.5 cursor-pointer items-center justify-center rounded"
-              style={{ color: copied ? "var(--am-accent-100)" : "var(--am-neutral-500)" }}
+              className={cn(
+                "flex size-5.5 cursor-pointer items-center justify-center rounded",
+                copied ? "text-primary" : "text-muted-foreground"
+              )}
             >
               {copied ? <Check className="size-3.75" /> : <Copy className="size-3.25" />}
             </button>
             <button
               type="button"
-              aria-label={STATUS_LABEL[status]}
-              title={STATUS_LABEL[status]}
+              aria-label={label}
+              title={label}
               onClick={onCycleStatus}
-              className="flex size-5.5 cursor-pointer items-center justify-center rounded"
-              style={{ color: STATUS_COLOR[status] }}
+              className={cn("flex size-5.5 cursor-pointer items-center justify-center rounded", iconClass)}
             >
               <StatusIcon className="size-3.75" />
             </button>
@@ -129,24 +120,21 @@ export function AlmanaxDayCell({
               alt={day.item.name}
               width={28}
               height={28}
-              className="shrink-0 rounded-sm border object-contain"
-              style={{ borderColor: "var(--am-divider)", background: "var(--am-neutral-100)" }}
+              className="shrink-0 rounded-sm border border-border bg-muted object-contain"
             />
           )}
           <div className="flex min-w-0 flex-col gap-0.5">
-            <div className="almanax-heading text-[15px] leading-tight font-semibold">
+            <div className="almanax-heading text-[15px] leading-tight font-semibold text-foreground">
               {day.item?.name}
             </div>
-            <div className="flex items-center gap-1 self-start text-xs tabular-nums">
+            <div className="flex items-center gap-1 self-start text-xs text-foreground tabular-nums">
               <span>{day.itemQuantity}</span>
               {numChars > 1 && (
                 <>
-                  <span style={{ color: "var(--am-neutral-400)" }}>×</span>
-                  <span style={{ color: "var(--am-accent-400)" }}>{numChars}</span>
-                  <span style={{ color: "var(--am-neutral-400)" }}>=</span>
-                  <span className="font-semibold" style={{ color: "var(--am-warm)" }}>
-                    {total}
-                  </span>
+                  <span className="text-muted-foreground">×</span>
+                  <span className="text-primary">{numChars}</span>
+                  <span className="text-muted-foreground">=</span>
+                  <span className="font-semibold text-accent">{total}</span>
                 </>
               )}
             </div>
@@ -158,25 +146,14 @@ export function AlmanaxDayCell({
         <button
           type="button"
           onClick={onOpenDetails}
-          className={cn(
-            "cursor-pointer self-start p-0 text-[11px] underline decoration-solid underline-offset-2"
-          )}
-          style={{ color: "var(--am-accent-400)" }}
+          className="cursor-pointer self-start p-0 text-[11px] text-primary underline decoration-solid underline-offset-2"
         >
           Bonus du jour
         </button>
       )}
 
-      {!hasData && loading && (
-        <div className="text-xs" style={{ color: "var(--am-neutral-700)" }}>
-          …
-        </div>
-      )}
-      {!hasData && !loading && (
-        <div className="text-xs" style={{ color: "var(--am-neutral-700)" }}>
-          —
-        </div>
-      )}
+      {!hasData && loading && <div className="text-xs text-muted-foreground">…</div>}
+      {!hasData && !loading && <div className="text-xs text-muted-foreground">—</div>}
     </div>
   )
 }

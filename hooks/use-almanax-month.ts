@@ -43,9 +43,9 @@ export function useAlmanaxMonth(
     fetchAlmanaxMonth(year, month, lang, controller.signal)
       .then((result) => {
         if (controller.signal.aborted) return
-        cache.current.set(cacheKey, result.days)
-        setDays(result.days)
-        setError(result.days.size === 0)
+        cache.current.set(cacheKey, result)
+        setDays(result)
+        setError(result.size === 0)
       })
       .catch(() => {
         if (controller.signal.aborted) return

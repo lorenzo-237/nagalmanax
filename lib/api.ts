@@ -1,6 +1,7 @@
 /**
- * Client for the public Almanax API (https://github.com/dofusdude/almanax-api).
- * Exposes typed helpers to fetch a single day or a full month of Dofus Almanax data.
+ * Client for the public Dofusdude Almanax API. Spec:
+ * https://github.com/dofusdude/api-docs (openapi-3.0.yaml).
+ * Exposes typed helpers to fetch a single day or a date range of Dofus Almanax data.
  */
 
 export const ALMANAX_LANGUAGES = ["fr", "en", "de", "es", "pt"] as const
@@ -104,40 +105,54 @@ export async function fetchAlmanaxDay(
   return parseAlmanaxDay(json)
 }
 
-export interface AlmanaxMonthResult {
-  /** Successfully fetched days, keyed by "YYYY-MM-DD". */
-  days: Map<string, AlmanaxDay>
-  /** Dates that failed to load. */
-  failedDates: string[]
+/**
+ * Fetches a date range in a single request (GET /{lang}/almanax with
+ * range[from]/range[to]), keyed by "YYYY-MM-DD". Throws {@link AlmanaxApiError}
+ * on failure; dates absent from the response simply have no entry in the map.
+ */
+export async function fetchAlmanaxRange(
+  from: string,
+  to: string,
+  lang: AlmanaxLanguage = "fr",
+  signal?: AbortSignal
+): Promise<Map<string, AlmanaxDay>> {
+  const params = new URLSearchParams({
+    "range[from]": from,
+    "range[to]": to,
+    "range[size]": "-1",
+  })
+
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE_URL}/${lang}/almanax?${params}`, { signal })
+  } catch (cause) {
+    throw new AlmanaxApiError(`Network error while fetching Almanax range ${from}..${to}`, from, cause)
+  }
+
+  if (!response.ok) {
+    throw new AlmanaxApiError(
+      `Almanax API returned status ${response.status} for range ${from}..${to}`,
+      from
+    )
+  }
+
+  const json = (await response.json()) as AlmanaxDayResponse[]
+  const days = new Map<string, AlmanaxDay>()
+  for (const raw of json) {
+    days.set(raw.date, parseAlmanaxDay(raw))
+  }
+  return days
 }
 
-/**
- * Fetches every day of a given month in parallel. Individual day failures are
- * collected in `failedDates` rather than rejecting the whole call.
- */
-export async function fetchAlmanaxMonth(
+/** Fetches every day of a given month in a single request. */
+export function fetchAlmanaxMonth(
   year: number,
   month: number,
   lang: AlmanaxLanguage = "fr",
   signal?: AbortSignal
-): Promise<AlmanaxMonthResult> {
+): Promise<Map<string, AlmanaxDay>> {
   const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const dates = Array.from({ length: daysInMonth }, (_, i) => toDateString(year, month, i + 1))
-
-  const settled = await Promise.allSettled(
-    dates.map((date) => fetchAlmanaxDay(date, lang, signal))
-  )
-
-  const days = new Map<string, AlmanaxDay>()
-  const failedDates: string[] = []
-
-  settled.forEach((result, index) => {
-    if (result.status === "fulfilled") {
-      days.set(dates[index], result.value)
-    } else {
-      failedDates.push(dates[index])
-    }
-  })
-
-  return { days, failedDates }
+  const from = toDateString(year, month, 1)
+  const to = toDateString(year, month, daysInMonth)
+  return fetchAlmanaxRange(from, to, lang, signal)
 }
