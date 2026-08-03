@@ -7,13 +7,15 @@ import "./almanax.css"
 import { buildMonthGrid, toDateKey, weekdayLabels } from "@/lib/calendar"
 import { type AlmanaxDayStatus, nextDayStatus } from "@/lib/day-status"
 import { useAlmanaxMonth } from "@/hooks/use-almanax-month"
+import { useAlmanaxToday } from "@/hooks/use-almanax-today"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { AlmanaxDayCell } from "@/components/almanax/almanax-day-cell"
 import { AlmanaxDayDialog } from "@/components/almanax/almanax-day-dialog"
-import { almanaxBodyFont, almanaxHeadingFont } from "@/components/almanax/fonts"
+import { AlmanaxTodaySpotlight } from "@/components/almanax/almanax-today-spotlight"
+import { almanaxHeadingFont } from "@/components/almanax/fonts"
 
 const LOCALE = "fr"
 
@@ -23,21 +25,29 @@ export function AlmanaxCalendar() {
     return { year: now.getFullYear(), month: now.getMonth() }
   })
   const [numChars, setNumChars] = useLocalStorage("almanax-num-chars", 1)
-  const [dayStatus, setDayStatus] = useLocalStorage<Record<string, AlmanaxDayStatus>>(
-    "almanax-day-status",
-    {}
-  )
+  const [dayStatus, setDayStatus] = useLocalStorage<
+    Record<string, AlmanaxDayStatus>
+  >("almanax-day-status", {})
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
-  const { days, loading, error, retry } = useAlmanaxMonth(cursor.year, cursor.month, LOCALE)
+  const { days, loading, error, retry } = useAlmanaxMonth(
+    cursor.year,
+    cursor.month,
+    LOCALE
+  )
+  const { day: today, loading: todayLoading } = useAlmanaxToday(LOCALE)
 
-  const cells = useMemo(() => buildMonthGrid(cursor.year, cursor.month), [cursor.year, cursor.month])
+  const cells = useMemo(
+    () => buildMonthGrid(cursor.year, cursor.month),
+    [cursor.year, cursor.month]
+  )
   const labels = useMemo(() => weekdayLabels(LOCALE), [])
   const monthLabel = useMemo(
     () =>
-      new Intl.DateTimeFormat(LOCALE, { month: "long", year: "numeric" }).format(
-        new Date(cursor.year, cursor.month, 1)
-      ),
+      new Intl.DateTimeFormat(LOCALE, {
+        month: "long",
+        year: "numeric",
+      }).format(new Date(cursor.year, cursor.month, 1)),
     [cursor.year, cursor.month]
   )
   const todayKey = useMemo(() => {
@@ -71,9 +81,9 @@ export function AlmanaxCalendar() {
 
   return (
     <div
-      className={`${almanaxHeadingFont.variable} ${almanaxBodyFont.variable} min-h-svh bg-background px-4 py-6 text-foreground sm:px-6 sm:py-8`}
+      className={`${almanaxHeadingFont.variable} min-h-svh bg-background px-4 py-6 text-foreground sm:px-6 sm:py-8`}
     >
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-6xl">
         <header className="mb-6 flex flex-wrap items-baseline justify-between gap-4 border-b border-border pb-4">
           <div>
             <div className="almanax-heading text-[13px] font-semibold tracking-wider text-accent uppercase">
@@ -122,6 +132,8 @@ export function AlmanaxCalendar() {
           </div>
         </header>
 
+        <AlmanaxTodaySpotlight day={today} loading={todayLoading} numChars={numChars} locale={LOCALE} />
+
         <div className="mb-4 flex items-center justify-between">
           <Button
             type="button"
@@ -131,7 +143,9 @@ export function AlmanaxCalendar() {
           >
             <ChevronLeft className="size-4" /> Précédent
           </Button>
-          <div className="almanax-heading text-2xl font-semibold capitalize">{monthLabel}</div>
+          <div className="almanax-heading text-2xl font-semibold capitalize">
+            {monthLabel}
+          </div>
           <Button
             type="button"
             variant="ghost"
@@ -148,9 +162,15 @@ export function AlmanaxCalendar() {
               Impossible de charger l&apos;Almanax
             </div>
             <div className="text-sm text-muted-foreground">
-              L&apos;API dofusdu.de est peut-être hors ligne ou injoignable depuis ce navigateur.
+              L&apos;API dofusdu.de est peut-être hors ligne ou injoignable
+              depuis ce navigateur.
             </div>
-            <Button type="button" variant="outline" onClick={retry} className="mt-3 rounded-md">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={retry}
+              className="mt-3 rounded-md"
+            >
               Réessayer
             </Button>
           </div>
@@ -160,7 +180,7 @@ export function AlmanaxCalendar() {
               {labels.map((label) => (
                 <div
                   key={label}
-                  className="almanax-heading border-r border-b border-border bg-card px-2.5 py-2 text-xs text-muted-foreground tracking-wider uppercase"
+                  className="almanax-heading border-r border-b border-border bg-card px-2.5 py-2 text-xs tracking-wider text-muted-foreground uppercase"
                 >
                   {label}
                 </div>
@@ -182,7 +202,10 @@ export function AlmanaxCalendar() {
                     onOpenDetails={() => setSelectedDate(cell.date)}
                   />
                 ) : (
-                  <div key={`empty-${i}`} className="border-r border-b border-border opacity-35" />
+                  <div
+                    key={`empty-${i}`}
+                    className="border-r border-b border-border opacity-35"
+                  />
                 )
               )}
             </div>
@@ -200,12 +223,12 @@ export function AlmanaxCalendar() {
         <p className="text-center text-xs text-muted-foreground">
           Données Almanax fournies par l&apos;API publique{" "}
           <a
-            href="https://github.com/dofusdude/almanax-api"
+            href="https://github.com/dofusdude/api-docs"
             target="_blank"
             rel="noopener noreferrer"
             className="text-primary underline underline-offset-2 hover:text-primary/80"
           >
-            dofusdude/almanax-api
+            dofusdude/api-docs
           </a>
           .
         </p>

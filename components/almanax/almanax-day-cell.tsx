@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { Check, CheckCheck, Circle, Copy } from "lucide-react"
+import { Check, CheckCheck, Circle, Copy, Info } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import type { AlmanaxDay } from "@/lib/api"
@@ -54,9 +54,15 @@ export function AlmanaxDayCell({
   onOpenDetails,
 }: AlmanaxDayCellProps) {
   const hasData = !!day?.item
-  const total = hasData && day.itemQuantity != null ? day.itemQuantity * numChars : null
+  const total =
+    hasData && day.itemQuantity != null ? day.itemQuantity * numChars : null
   const [copied, setCopied] = useState(false)
-  const { icon: StatusIcon, iconClass, cellClass, label } = STATUS_CONFIG[status]
+  const {
+    icon: StatusIcon,
+    iconClass,
+    cellClass,
+    label,
+  } = STATUS_CONFIG[status]
 
   async function copyItemName() {
     if (!day?.item?.name) return
@@ -72,13 +78,15 @@ export function AlmanaxDayCell({
   return (
     <div
       className={cn(
-        "almanax-cell grid min-h-29.5 grid-rows-[20px_1fr_auto] gap-1.5 border-r border-b border-border p-2",
+        "almanax-cell grid min-h-34 grid-rows-[22px_1fr] gap-2 border-r border-b border-border p-2.5",
         status === "none" && isToday ? "bg-primary/10" : cellClass
       )}
     >
-      <div className="flex h-5 items-center justify-between">
+      <div className="flex h-5.5 items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <span className="text-sm text-muted-foreground tabular-nums">{dayNumber}</span>
+          <span className="text-sm text-muted-foreground tabular-nums">
+            {dayNumber}
+          </span>
           {isToday && (
             <span className="almanax-heading rounded bg-accent px-1.5 py-0.5 text-[10px] text-accent-foreground">
               Aujourd&apos;hui
@@ -87,6 +95,17 @@ export function AlmanaxDayCell({
         </div>
         {hasData && (
           <div className="flex items-center gap-0.5">
+            {day?.bonus && (
+              <button
+                type="button"
+                aria-label="Voir le bonus du jour"
+                title="Voir le bonus du jour"
+                onClick={onOpenDetails}
+                className="flex size-5.5 cursor-pointer items-center justify-center rounded text-primary"
+              >
+                <Info className="size-3.75" />
+              </button>
+            )}
             <button
               type="button"
               aria-label="Copier le nom de la ressource"
@@ -97,14 +116,21 @@ export function AlmanaxDayCell({
                 copied ? "text-primary" : "text-muted-foreground"
               )}
             >
-              {copied ? <Check className="size-3.75" /> : <Copy className="size-3.25" />}
+              {copied ? (
+                <Check className="size-3.75" />
+              ) : (
+                <Copy className="size-3.25" />
+              )}
             </button>
             <button
               type="button"
               aria-label={label}
               title={label}
               onClick={onCycleStatus}
-              className={cn("flex size-5.5 cursor-pointer items-center justify-center rounded", iconClass)}
+              className={cn(
+                "flex size-5.5 cursor-pointer items-center justify-center rounded",
+                iconClass
+              )}
             >
               <StatusIcon className="size-3.75" />
             </button>
@@ -124,7 +150,7 @@ export function AlmanaxDayCell({
             />
           )}
           <div className="flex min-w-0 flex-col gap-0.5">
-            <div className="almanax-heading text-[15px] leading-tight font-semibold text-foreground">
+            <div className="almanax-heading text-[12px] leading-relaxed font-semibold text-foreground">
               {day.item?.name}
             </div>
             <div className="flex items-center gap-1 self-start text-xs text-foreground tabular-nums">
@@ -142,18 +168,12 @@ export function AlmanaxDayCell({
         </div>
       )}
 
-      {hasData && day?.bonus && (
-        <button
-          type="button"
-          onClick={onOpenDetails}
-          className="cursor-pointer self-start p-0 text-[11px] text-primary underline decoration-solid underline-offset-2"
-        >
-          Bonus du jour
-        </button>
+      {!hasData && loading && (
+        <div className="text-xs text-muted-foreground">…</div>
       )}
-
-      {!hasData && loading && <div className="text-xs text-muted-foreground">…</div>}
-      {!hasData && !loading && <div className="text-xs text-muted-foreground">—</div>}
+      {!hasData && !loading && (
+        <div className="text-xs text-muted-foreground">—</div>
+      )}
     </div>
   )
 }

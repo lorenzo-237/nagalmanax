@@ -9,8 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import { almanaxBodyFont, almanaxHeadingFont } from "@/components/almanax/fonts"
+import { almanaxHeadingFont } from "@/components/almanax/fonts"
 import type { AlmanaxDay } from "@/lib/api"
 
 interface AlmanaxDayDialogProps {
@@ -29,9 +28,7 @@ export function AlmanaxDayDialog({ date, day, locale, onClose }: AlmanaxDayDialo
 
   return (
     <Dialog open={!!date} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent
-        className={cn(almanaxHeadingFont.variable, almanaxBodyFont.variable, "almanax-body")}
-      >
+      <DialogContent className={almanaxHeadingFont.variable}>
         <DialogHeader>
           <DialogTitle className="almanax-heading text-xl font-semibold capitalize">
             {dateLabel}
