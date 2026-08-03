@@ -1,7 +1,6 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
 
 import "./almanax.css"
 import { buildMonthGrid, toDateKey, weekdayLabels } from "@/lib/calendar"
@@ -10,11 +9,11 @@ import { useAlmanaxMonth } from "@/hooks/use-almanax-month"
 import { useAlmanaxToday } from "@/hooks/use-almanax-today"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import { Button } from "@/components/ui/button"
-import { ThemeToggle } from "@/components/theme-toggle"
 import { AlmanaxDayCell } from "@/components/almanax/almanax-day-cell"
 import { AlmanaxDayDialog } from "@/components/almanax/almanax-day-dialog"
-import { AlmanaxSettingsSheet } from "@/components/almanax/almanax-settings-sheet"
+import { AlmanaxDayList } from "@/components/almanax/almanax-day-list"
 import { AlmanaxTodaySpotlight } from "@/components/almanax/almanax-today-spotlight"
+import { AlmanaxTopBar } from "@/components/almanax/almanax-top-bar"
 import { almanaxHeadingFont } from "@/components/almanax/fonts"
 
 const LOCALE = "fr"
@@ -82,47 +81,16 @@ export function AlmanaxCalendar() {
 
   return (
     <div
-      className={`${almanaxHeadingFont.variable} flex h-svh flex-col overflow-hidden bg-background px-4 py-3 text-foreground sm:px-6`}
+      className={`${almanaxHeadingFont.variable} flex flex-col bg-background px-4 py-3 text-foreground sm:px-6 md:h-svh md:overflow-hidden`}
     >
-      <div className="mx-auto flex h-full w-full max-w-6xl min-h-0 flex-col">
-        <div className="mb-2 flex shrink-0 items-center justify-between gap-3 border-b border-border pb-2">
-          <div className="almanax-heading shrink-0 text-sm font-semibold tracking-wider text-accent uppercase">
-            Almanax
-          </div>
-
-          <div className="flex items-center gap-1">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label="Mois précédent"
-              title="Mois précédent"
-              onClick={() => changeMonth(-1)}
-              className="rounded-md text-primary hover:text-primary"
-            >
-              <ChevronLeft className="size-4" />
-            </Button>
-            <div className="almanax-heading min-w-36 text-center text-lg font-semibold capitalize">
-              {monthLabel}
-            </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label="Mois suivant"
-              title="Mois suivant"
-              onClick={() => changeMonth(1)}
-              className="rounded-md text-primary hover:text-primary"
-            >
-              <ChevronRight className="size-4" />
-            </Button>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-1">
-            <AlmanaxSettingsSheet numChars={numChars} onChangeChars={setChars} />
-            <ThemeToggle />
-          </div>
-        </div>
+      <div className="mx-auto flex w-full max-w-6xl flex-col md:h-full md:min-h-0">
+        <AlmanaxTopBar
+          monthLabel={monthLabel}
+          numChars={numChars}
+          onChangeChars={setChars}
+          onPrevMonth={() => changeMonth(-1)}
+          onNextMonth={() => changeMonth(1)}
+        />
 
         <AlmanaxTodaySpotlight
           day={today}
@@ -151,44 +119,62 @@ export function AlmanaxCalendar() {
             </Button>
           </div>
         ) : (
-          <div className="flex min-h-0 flex-1 flex-col">
-            <div className="grid shrink-0 grid-cols-7 border-t border-l border-border">
-              {labels.map((label) => (
-                <div
-                  key={label}
-                  className="almanax-heading border-r border-b border-border bg-card px-2.5 py-1.5 text-xs tracking-wider text-muted-foreground uppercase"
-                >
-                  {label}
-                </div>
-              ))}
+          <>
+            {/* Kiosk grid — second-screen layout, md and up, fills the viewport, never scrolls. */}
+            <div className="hidden min-h-0 flex-1 flex-col md:flex">
+              <div className="grid shrink-0 grid-cols-7 border-t border-l border-border">
+                {labels.map((label) => (
+                  <div
+                    key={label}
+                    className="almanax-heading border-r border-b border-border bg-card px-2.5 py-1.5 text-xs tracking-wider text-muted-foreground uppercase"
+                  >
+                    {label}
+                  </div>
+                ))}
+              </div>
+
+              <div
+                className="grid min-h-0 flex-1 grid-cols-7 border-l border-border"
+                style={{ gridTemplateRows: `repeat(${weekCount}, minmax(0, 1fr))` }}
+              >
+                {cells.map((cell, i) =>
+                  cell.inMonth && cell.date && cell.dayNumber ? (
+                    <AlmanaxDayCell
+                      key={cell.date}
+                      dayNumber={cell.dayNumber}
+                      day={days.get(cell.date)}
+                      loading={loading}
+                      isToday={cell.date === todayKey}
+                      status={dayStatus[cell.date] ?? "none"}
+                      numChars={numChars}
+                      onCycleStatus={() => cycleStatus(cell.date!)}
+                      onOpenDetails={() => setSelectedDate(cell.date)}
+                    />
+                  ) : (
+                    <div
+                      key={`empty-${i}`}
+                      className="border-r border-b border-border opacity-35"
+                    />
+                  )
+                )}
+              </div>
             </div>
 
-            <div
-              className="grid min-h-0 flex-1 grid-cols-7 border-l border-border"
-              style={{ gridTemplateRows: `repeat(${weekCount}, minmax(0, 1fr))` }}
-            >
-              {cells.map((cell, i) =>
-                cell.inMonth && cell.date && cell.dayNumber ? (
-                  <AlmanaxDayCell
-                    key={cell.date}
-                    dayNumber={cell.dayNumber}
-                    day={days.get(cell.date)}
-                    loading={loading}
-                    isToday={cell.date === todayKey}
-                    status={dayStatus[cell.date] ?? "none"}
-                    numChars={numChars}
-                    onCycleStatus={() => cycleStatus(cell.date!)}
-                    onOpenDetails={() => setSelectedDate(cell.date)}
-                  />
-                ) : (
-                  <div
-                    key={`empty-${i}`}
-                    className="border-r border-b border-border opacity-35"
-                  />
-                )
-              )}
+            {/* Simple list — below md, essentials only, page scrolls normally. */}
+            <div className="md:hidden">
+              <AlmanaxDayList
+                cells={cells}
+                days={days}
+                loading={loading}
+                todayKey={todayKey}
+                dayStatus={dayStatus}
+                numChars={numChars}
+                locale={LOCALE}
+                onCycleStatus={cycleStatus}
+                onOpenDetails={setSelectedDate}
+              />
             </div>
-          </div>
+          </>
         )}
 
         <AlmanaxDayDialog
