@@ -78,7 +78,7 @@ export function AlmanaxDayCell({
   return (
     <div
       className={cn(
-        "almanax-cell grid min-h-34 grid-rows-[22px_1fr] gap-2 border-r border-b border-border p-2.5",
+        "almanax-cell grid h-full min-h-0 grid-rows-[22px_1fr] gap-1.5 overflow-hidden border-r border-b border-border p-2",
         status === "none" && isToday ? "bg-primary/10" : cellClass
       )}
     >

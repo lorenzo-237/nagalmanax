@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 import "./almanax.css"
 import { buildMonthGrid, toDateKey, weekdayLabels } from "@/lib/calendar"
@@ -10,10 +10,10 @@ import { useAlmanaxMonth } from "@/hooks/use-almanax-month"
 import { useAlmanaxToday } from "@/hooks/use-almanax-today"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { AlmanaxDayCell } from "@/components/almanax/almanax-day-cell"
 import { AlmanaxDayDialog } from "@/components/almanax/almanax-day-dialog"
+import { AlmanaxSettingsSheet } from "@/components/almanax/almanax-settings-sheet"
 import { AlmanaxTodaySpotlight } from "@/components/almanax/almanax-today-spotlight"
 import { almanaxHeadingFont } from "@/components/almanax/fonts"
 
@@ -41,6 +41,7 @@ export function AlmanaxCalendar() {
     () => buildMonthGrid(cursor.year, cursor.month),
     [cursor.year, cursor.month]
   )
+  const weekCount = cells.length / 7
   const labels = useMemo(() => weekdayLabels(LOCALE), [])
   const monthLabel = useMemo(
     () =>
@@ -81,80 +82,55 @@ export function AlmanaxCalendar() {
 
   return (
     <div
-      className={`${almanaxHeadingFont.variable} min-h-svh bg-background px-4 py-6 text-foreground sm:px-6 sm:py-8`}
+      className={`${almanaxHeadingFont.variable} flex h-svh flex-col overflow-hidden bg-background px-4 py-3 text-foreground sm:px-6`}
     >
-      <div className="mx-auto max-w-6xl">
-        <header className="mb-6 flex flex-wrap items-baseline justify-between gap-4 border-b border-border pb-4">
-          <div>
-            <div className="almanax-heading text-[13px] font-semibold tracking-wider text-accent uppercase">
-              Dofus
-            </div>
-            <h1 className="almanax-heading mt-0.5 text-3xl font-normal sm:text-4xl">
-              Almanax — ressources du mois
-            </h1>
+      <div className="mx-auto flex h-full w-full max-w-6xl min-h-0 flex-col">
+        <div className="mb-2 flex shrink-0 items-center justify-between gap-3 border-b border-border pb-2">
+          <div className="almanax-heading shrink-0 text-sm font-semibold tracking-wider text-accent uppercase">
+            Almanax
           </div>
 
-          <div className="flex items-end gap-3">
-            <label className="flex flex-col gap-1 text-[13px] text-muted-foreground">
-              Nombre de personnages
-              <div className="flex items-center gap-1.5 rounded-sm border border-border px-1.5 py-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Moins"
-                  onClick={() => setChars(numChars - 1)}
-                  className="size-7 rounded-md"
-                >
-                  <Minus className="size-3.5" />
-                </Button>
-                <Input
-                  type="number"
-                  min={1}
-                  max={20}
-                  value={numChars}
-                  onChange={(e) => setChars(Number(e.target.value))}
-                  className="h-auto w-11 rounded-none border-none bg-transparent p-0 text-center text-base tabular-nums shadow-none focus-visible:ring-0"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Plus"
-                  onClick={() => setChars(numChars + 1)}
-                  className="size-7 rounded-md"
-                >
-                  <Plus className="size-3.5" />
-                </Button>
-              </div>
-            </label>
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Mois précédent"
+              title="Mois précédent"
+              onClick={() => changeMonth(-1)}
+              className="rounded-md text-primary hover:text-primary"
+            >
+              <ChevronLeft className="size-4" />
+            </Button>
+            <div className="almanax-heading min-w-36 text-center text-lg font-semibold capitalize">
+              {monthLabel}
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Mois suivant"
+              title="Mois suivant"
+              onClick={() => changeMonth(1)}
+              className="rounded-md text-primary hover:text-primary"
+            >
+              <ChevronRight className="size-4" />
+            </Button>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-1">
+            <AlmanaxSettingsSheet numChars={numChars} onChangeChars={setChars} />
             <ThemeToggle />
           </div>
-        </header>
-
-        <AlmanaxTodaySpotlight day={today} loading={todayLoading} numChars={numChars} locale={LOCALE} />
-
-        <div className="mb-4 flex items-center justify-between">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => changeMonth(-1)}
-            className="rounded-md px-2 text-primary hover:text-primary"
-          >
-            <ChevronLeft className="size-4" /> Précédent
-          </Button>
-          <div className="almanax-heading text-2xl font-semibold capitalize">
-            {monthLabel}
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => changeMonth(1)}
-            className="rounded-md px-2 text-primary hover:text-primary"
-          >
-            Suivant <ChevronRight className="size-4" />
-          </Button>
         </div>
+
+        <AlmanaxTodaySpotlight
+          day={today}
+          loading={todayLoading}
+          numChars={numChars}
+          locale={LOCALE}
+          onOpenDetails={() => setSelectedDate(todayKey)}
+        />
 
         {error ? (
           <div className="rounded-md border border-destructive/40 p-4 text-center">
@@ -175,19 +151,22 @@ export function AlmanaxCalendar() {
             </Button>
           </div>
         ) : (
-          <div>
-            <div className="grid grid-cols-7 border-t border-l border-border">
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="grid shrink-0 grid-cols-7 border-t border-l border-border">
               {labels.map((label) => (
                 <div
                   key={label}
-                  className="almanax-heading border-r border-b border-border bg-card px-2.5 py-2 text-xs tracking-wider text-muted-foreground uppercase"
+                  className="almanax-heading border-r border-b border-border bg-card px-2.5 py-1.5 text-xs tracking-wider text-muted-foreground uppercase"
                 >
                   {label}
                 </div>
               ))}
             </div>
 
-            <div className="grid grid-cols-7 border-l border-border">
+            <div
+              className="grid min-h-0 flex-1 grid-cols-7 border-l border-border"
+              style={{ gridTemplateRows: `repeat(${weekCount}, minmax(0, 1fr))` }}
+            >
               {cells.map((cell, i) =>
                 cell.inMonth && cell.date && cell.dayNumber ? (
                   <AlmanaxDayCell
@@ -214,13 +193,16 @@ export function AlmanaxCalendar() {
 
         <AlmanaxDayDialog
           date={selectedDate}
-          day={selectedDate ? days.get(selectedDate) : undefined}
+          day={
+            selectedDate
+              ? (days.get(selectedDate) ?? (selectedDate === todayKey ? (today ?? undefined) : undefined))
+              : undefined
+          }
           locale={LOCALE}
           onClose={() => setSelectedDate(null)}
         />
 
-        <div className="my-6 h-px bg-border" />
-        <p className="text-center text-xs text-muted-foreground">
+        <p className="shrink-0 pt-1 text-center text-[10px] text-muted-foreground">
           Données Almanax fournies par l&apos;API publique{" "}
           <a
             href="https://github.com/dofusdude/api-docs"
