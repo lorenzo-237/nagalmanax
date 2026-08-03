@@ -2,20 +2,39 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { Check, CheckCircle, Copy } from "lucide-react"
+import { Check, CheckCheck, Circle, Copy } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import type { AlmanaxDay } from "@/lib/api"
+import type { AlmanaxDayStatus } from "@/lib/day-status"
 
 interface AlmanaxDayCellProps {
   dayNumber: number
   day: AlmanaxDay | undefined
   loading: boolean
   isToday: boolean
-  isPrepared: boolean
+  status: AlmanaxDayStatus
   numChars: number
-  onTogglePrepared: () => void
+  onCycleStatus: () => void
   onOpenDetails: () => void
+}
+
+const STATUS_ICON: Record<AlmanaxDayStatus, typeof Circle> = {
+  none: Circle,
+  prepared: Check,
+  done: CheckCheck,
+}
+
+const STATUS_LABEL: Record<AlmanaxDayStatus, string> = {
+  none: "Marquer les ressources comme préparées",
+  prepared: "Marquer la quête comme faite sur tous les personnages",
+  done: "Réinitialiser",
+}
+
+const STATUS_COLOR: Record<AlmanaxDayStatus, string> = {
+  none: "var(--am-neutral-500)",
+  prepared: "var(--am-accent-100)",
+  done: "var(--am-done-100)",
 }
 
 export function AlmanaxDayCell({
@@ -23,14 +42,15 @@ export function AlmanaxDayCell({
   day,
   loading,
   isToday,
-  isPrepared,
+  status,
   numChars,
-  onTogglePrepared,
+  onCycleStatus,
   onOpenDetails,
 }: AlmanaxDayCellProps) {
   const hasData = !!day?.item
   const total = hasData && day.itemQuantity != null ? day.itemQuantity * numChars : null
   const [copied, setCopied] = useState(false)
+  const StatusIcon = STATUS_ICON[status]
 
   async function copyItemName() {
     if (!day?.item?.name) return
@@ -48,11 +68,14 @@ export function AlmanaxDayCell({
       className="almanax-cell grid min-h-29.5 grid-rows-[20px_1fr_auto] gap-1.5 border-r border-b p-2"
       style={{
         borderColor: "var(--am-divider)",
-        background: isPrepared
-          ? "var(--am-surface-prepared)"
-          : isToday
-            ? "var(--am-surface-today)"
-            : "var(--am-surface)",
+        background:
+          status === "done"
+            ? "var(--am-surface-done)"
+            : status === "prepared"
+              ? "var(--am-surface-prepared)"
+              : isToday
+                ? "var(--am-surface-today)"
+                : "var(--am-surface)",
       }}
     >
       <div className="flex h-5 items-center justify-between">
@@ -86,13 +109,13 @@ export function AlmanaxDayCell({
             </button>
             <button
               type="button"
-              aria-label="Ressources préparées"
-              title="C'est bon, j'ai préparé les ressources"
-              onClick={onTogglePrepared}
+              aria-label={STATUS_LABEL[status]}
+              title={STATUS_LABEL[status]}
+              onClick={onCycleStatus}
               className="flex size-5.5 cursor-pointer items-center justify-center rounded"
-              style={{ color: isPrepared ? "var(--am-accent-100)" : "var(--am-neutral-500)" }}
+              style={{ color: STATUS_COLOR[status] }}
             >
-              <CheckCircle className="size-3.75" />
+              <StatusIcon className="size-3.75" />
             </button>
           </div>
         )}

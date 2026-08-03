@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react"
 
 import "./almanax.css"
 import { buildMonthGrid, toDateKey, weekdayLabels } from "@/lib/calendar"
+import { type AlmanaxDayStatus, nextDayStatus } from "@/lib/day-status"
 import { useAlmanaxMonth } from "@/hooks/use-almanax-month"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import { Button } from "@/components/ui/button"
@@ -21,7 +22,10 @@ export function AlmanaxCalendar() {
     return { year: now.getFullYear(), month: now.getMonth() }
   })
   const [numChars, setNumChars] = useLocalStorage("almanax-num-chars", 1)
-  const [prepared, setPrepared] = useLocalStorage<Record<string, boolean>>("almanax-prepared", {})
+  const [dayStatus, setDayStatus] = useLocalStorage<Record<string, AlmanaxDayStatus>>(
+    "almanax-day-status",
+    {}
+  )
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
   const { days, loading, error, retry } = useAlmanaxMonth(cursor.year, cursor.month, LOCALE)
@@ -54,12 +58,13 @@ export function AlmanaxCalendar() {
     setNumChars(clamped)
   }
 
-  function togglePrepared(date: string) {
-    setPrepared((prev) => {
-      const next = { ...prev }
-      if (next[date]) delete next[date]
-      else next[date] = true
-      return next
+  function cycleStatus(date: string) {
+    setDayStatus((prev) => {
+      const next = nextDayStatus(prev[date] ?? "none")
+      const updated = { ...prev }
+      if (next === "none") delete updated[date]
+      else updated[date] = next
+      return updated
     })
   }
 
@@ -195,9 +200,9 @@ export function AlmanaxCalendar() {
                     day={days.get(cell.date)}
                     loading={loading}
                     isToday={cell.date === todayKey}
-                    isPrepared={!!prepared[cell.date]}
+                    status={dayStatus[cell.date] ?? "none"}
                     numChars={numChars}
-                    onTogglePrepared={() => togglePrepared(cell.date!)}
+                    onCycleStatus={() => cycleStatus(cell.date!)}
                     onOpenDetails={() => setSelectedDate(cell.date)}
                   />
                 ) : (
